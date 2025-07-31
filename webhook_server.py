@@ -49,11 +49,11 @@ def handle_unsubscribe(phone_number, message_text):
             sheet = get_sheets_connection()
             all_data = sheet.get_all_values()
             
-            # Find lead by phone number
+            # Find lead by phone number in Column D (index 3)
             lead_found = False
             for row_idx, row in enumerate(all_data, start=2):
-                if len(row) > 2:
-                    phone_in_row = row[2].strip() if row[2] else ""  # Column C
+                if len(row) > 3:
+                    phone_in_row = row[3].strip() if row[3] else ""  # Column D (index 3)
                     
                     if normalize_phone(phone_in_row) == normalize_phone(phone_number):
                         # Update Column Q to "Not able to fund"
@@ -63,7 +63,7 @@ def handle_unsubscribe(phone_number, message_text):
                         break
             
             if not lead_found:
-                print(f"⚠️ Phone {phone_number} not found in AllLeads")
+                print(f"⚠️ Phone {phone_number} not found in AllLeads Column D")
                 
     except Exception as e:
         print(f"❌ Error processing unsubscribe: {e}")
