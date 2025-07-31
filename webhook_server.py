@@ -77,9 +77,15 @@ def webhook():
         # ADD DEBUG LOGGING
         print(f"🔔 Webhook received: {data}")
         
-        # Extract webhook data
-        phone_number = data.get('phone', '')
-        message_text = data.get('message', '')
+        # Extract webhook data from Kixie format
+        if 'data' in data:
+            kixie_data = data['data']
+            phone_number = kixie_data.get('from', '')  # Kixie uses 'from' for phone
+            message_text = kixie_data.get('message', '')  # Kixie uses 'message'
+        else:
+            # Fallback to old format
+            phone_number = data.get('phone', '')
+            message_text = data.get('message', '')
         
         print(f"📱 Phone: {phone_number}")
         print(f"💬 Message: {message_text}")
