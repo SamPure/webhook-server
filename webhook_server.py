@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify
 import gspread
 from google.oauth2.service_account import Credentials
 import json
+from difflib import SequenceMatcher
 
 app = Flask(__name__)
 
@@ -32,15 +33,30 @@ def normalize_phone(phone):
         return digits_only
     return digits_only
 
+def fuzzy_match(text, keywords, threshold=0.8):
+    """Fuzzy match text against keywords (case insensitive)"""
+    text_lower = text.lower().strip()
+    
+    for keyword in keywords:
+        # Exact match (case insensitive)
+        if keyword.lower() in text_lower:
+            return True
+        
+        # Fuzzy match using SequenceMatcher
+        similarity = SequenceMatcher(None, text_lower, keyword.lower()).ratio()
+        if similarity >= threshold:
+            return True
+    
+    return False
+
 def handle_unsubscribe(phone_number, message_text):
     """Handle unsubscribe detection and sheet update"""
     try:
-        # Fuzzy matching for unsubscribe keywords
-        unsubscribe_keywords = ["unsubscribe", "stop", "quit", "cancel", "opt out", "remove me", "not interested"]
-        message_lower = message_text.lower().strip()
+        # Only "unsubscribe" and "stop" keywords with fuzzy matching
+        unsubscribe_keywords = ["unsubscribe", "stop"]
         
-        # Check if message contains unsubscribe keyword
-        is_unsubscribe = any(keyword in message_lower for keyword in unsubscribe_keywords)
+        # Check if message contains unsubscribe keyword (fuzzy + case insensitive)
+        is_unsubscribe = fuzzy_match(message_text, unsubscribe_keywords)
         
         if is_unsubscribe:
             print(f"🚫 Unsubscribe detected from {phone_number}: {message_text}")
