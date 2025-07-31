@@ -51,14 +51,16 @@ def handle_unsubscribe(phone_number, message_text):
             
             # Find lead by phone number in Column D (index 3)
             lead_found = False
-            for row_idx, row in enumerate(all_data, start=2):
+            for row_idx, row in enumerate(all_data):
                 if len(row) > 3:
                     phone_in_row = row[3].strip() if row[3] else ""  # Column D (index 3)
                     
                     if normalize_phone(phone_in_row) == normalize_phone(phone_number):
                         # Update Column Q to "Not able to fund"
-                        sheet.update_acell(f'Q{row_idx}', "Not able to fund")
-                        print(f"✅ Updated AllLeads row {row_idx} for {phone_number}")
+                        # Add 1 to row_idx because sheets are 1-indexed
+                        actual_row = row_idx + 1
+                        sheet.update_acell(f'Q{actual_row}', "Not able to fund")
+                        print(f"✅ Updated AllLeads row {actual_row} for {phone_number}")
                         lead_found = True
                         break
             
