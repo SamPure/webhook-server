@@ -36,7 +36,7 @@ def handle_unsubscribe(phone_number, message_text):
     """Handle unsubscribe detection and sheet update"""
     try:
         # Fuzzy matching for unsubscribe keywords
-        unsubscribe_keywords = ["unsubscribe", "stop", "quit", "cancel", "opt out"]
+        unsubscribe_keywords = ["unsubscribe", "stop", "quit", "cancel", "opt out", "remove me", "not interested"]
         message_lower = message_text.lower().strip()
         
         # Check if message contains unsubscribe keyword
@@ -80,20 +80,25 @@ def webhook():
         # Extract webhook data from Kixie format
         if 'data' in data:
             kixie_data = data['data']
-            phone_number = kixie_data.get('from', '')  # Kixie uses 'from' for phone
-            message_text = kixie_data.get('message', '')  # Kixie uses 'message'
+            direction = kixie_data.get('direction', '')
+            
+            # ONLY PROCESS INCOMING MESSAGES
+            if direction == 'incoming':
+                phone_number = kixie_data.get('from', '')  # Use 'from' for incoming messages
+                message_text = kixie_data.get('message', '')
+                
+                print(f"📱 Phone: {phone_number}")
+                print(f"💬 Message: {message_text}")
+                print(f"📡 Direction: {direction}")
+                
+                if phone_number and message_text:
+                    handle_unsubscribe(phone_number, message_text)
+                else:
+                    print(f"⚠️ Missing phone or message: phone={phone_number}, message={message_text}")
+            else:
+                print(f"⏭️ Skipping outgoing message (direction: {direction})")
         else:
-            # Fallback to old format
-            phone_number = data.get('phone', '')
-            message_text = data.get('message', '')
-        
-        print(f"📱 Phone: {phone_number}")
-        print(f"💬 Message: {message_text}")
-        
-        if phone_number and message_text:
-            handle_unsubscribe(phone_number, message_text)
-        else:
-            print(f"⚠️ Missing phone or message: phone={phone_number}, message={message_text}")
+            print("⚠️ No 'data' field in webhook payload")
             
         return jsonify({"status": "success"}), 200
         
