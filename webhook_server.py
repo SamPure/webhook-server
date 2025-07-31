@@ -74,12 +74,20 @@ def webhook():
     try:
         data = request.get_json()
         
+        # ADD DEBUG LOGGING
+        print(f"🔔 Webhook received: {data}")
+        
         # Extract webhook data
         phone_number = data.get('phone', '')
         message_text = data.get('message', '')
         
+        print(f"📱 Phone: {phone_number}")
+        print(f"💬 Message: {message_text}")
+        
         if phone_number and message_text:
             handle_unsubscribe(phone_number, message_text)
+        else:
+            print(f"⚠️ Missing phone or message: phone={phone_number}, message={message_text}")
             
         return jsonify({"status": "success"}), 200
         
